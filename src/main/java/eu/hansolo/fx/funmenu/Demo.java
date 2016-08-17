@@ -18,14 +18,13 @@ package eu.hansolo.fx.funmenu;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.scene.control.Tooltip;
+import javafx.scene.Scene;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.scene.layout.StackPane;
-import javafx.scene.Scene;
 import org.kordamp.ikonli.material.Material;
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 
@@ -58,6 +57,7 @@ public class Demo extends Application {
         pane.setBackground(new Background(new BackgroundFill(Color.web("#825ECB"), CornerRadii.EMPTY, Insets.EMPTY)));
 
         Scene scene = new Scene(pane);
+        //scene.getStylesheets().add(Demo.class.getResource("styles.css").toExternalForm());
 
         stage.setTitle("FunMenu");
         stage.setScene(scene);

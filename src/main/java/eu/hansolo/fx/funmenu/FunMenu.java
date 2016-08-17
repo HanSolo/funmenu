@@ -23,27 +23,24 @@ import javafx.animation.Timeline;
 import javafx.beans.DefaultProperty;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.css.CssMetaData;
+import javafx.css.SimpleStyleableObjectProperty;
+import javafx.css.Styleable;
+import javafx.css.StyleableProperty;
+import javafx.css.StyleablePropertyFactory;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.util.Duration;
 import org.kordamp.ikonli.Ikon;
+
+import java.util.List;
 
 
 /**
@@ -53,46 +50,53 @@ import org.kordamp.ikonli.Ikon;
  */
 @DefaultProperty("children")
 public class FunMenu extends Region {
-    private static final double PREFERRED_WIDTH  = 400;
-    private static final double PREFERRED_HEIGHT = 70;
-    private static final double MINIMUM_WIDTH    = 200;
-    private static final double MINIMUM_HEIGHT   = 35;
-    private static final double MAXIMUM_WIDTH    = 1024;
-    private static final double MAXIMUM_HEIGHT   = 1024;
-    private static double                   aspectRatio;
-    private        boolean                  keepAspect;
-    private        double                   size;
-    private        double                   itemSize;
-    private        double                   width;
-    private        double                   height;
-    private        Region                   menu;
-    private        Region                   button;
-    private        Region                   cross;
-    private        FunMenuItem              item1;
-    private        FunMenuItem              item2;
-    private        FunMenuItem              item3;
-    private        FunMenuItem              item4;
-    private        Pane                     pane;
-    private        DropShadow               shadow;
-    private        Paint                    backgroundPaint;
-    private        Paint                    borderPaint;
-    private        double                   borderWidth;
-    private        Timeline                 timeline;
-    private        EventHandler<MouseEvent> closeHandler;
-
-    private BooleanProperty open;
+    private static final double                            PREFERRED_WIDTH       = 400;
+    private static final double                            PREFERRED_HEIGHT      = 70;
+    private static final double                            MINIMUM_WIDTH         = 200;
+    private static final double                            MINIMUM_HEIGHT        = 35;
+    private static final double                            MAXIMUM_WIDTH         = 1024;
+    private static final double                            MAXIMUM_HEIGHT        = 1024;
+    private static final StyleablePropertyFactory<FunMenu> FACTORY               = new StyleablePropertyFactory<>(Region.getClassCssMetaData());
+    private static final CssMetaData<FunMenu, Color>       MENU_COLOR            = FACTORY.createColorCssMetaData("-menu-color", s -> s.menuColor, Color.web("#ffcb4d65"), false);
+    private static final CssMetaData<FunMenu, Color>       ICON_BACKGROUND_COLOR = FACTORY.createColorCssMetaData("-icon-background-color", s -> s.iconBackgroundColor, Color.TRANSPARENT, false);
+    private static final CssMetaData<FunMenu, Color>       ICON_COLOR            = FACTORY.createColorCssMetaData("-icon-color", s -> s.iconColor, Color.WHITE, false);
+    private static final CssMetaData<FunMenu, Color>       BUTTON_COLOR          = FACTORY.createColorCssMetaData("-button-color", s -> s.buttonColor, Color.web("#ffcb4d"), false);
+    private static final CssMetaData<FunMenu, Color>       CROSS_COLOR           = FACTORY.createColorCssMetaData("-cross-color", s -> s.crossColor, Color.WHITE, false);
+    private        final StyleableProperty<Color>          menuColor;
+    private        final StyleableProperty<Color>          iconBackgroundColor;
+    private        final StyleableProperty<Color>          iconColor;
+    private        final StyleableProperty<Color>          buttonColor;
+    private        final StyleableProperty<Color>          crossColor;
+    private static       double                            aspectRatio;
+    private              boolean                           keepAspect;
+    private              double                            itemSize;
+    private              double                            width;
+    private              double                            height;
+    private              Region                            menu;
+    private              Region                            button;
+    private              Region                            cross;
+    private              FunMenuItem                       item1;
+    private              FunMenuItem                       item2;
+    private              FunMenuItem                       item3;
+    private              FunMenuItem                       item4;
+    private              DropShadow                        shadow;
+    private              Timeline                          timeline;
+    private              EventHandler<MouseEvent>          closeHandler;
+    private              BooleanProperty                   open;
 
 
     // ******************** Constructors **************************************
     public FunMenu() {
         getStylesheets().add(FunMenu.class.getResource("funmenu.css").toExternalForm());
-        getStyleClass().add("fun-menu");
-        aspectRatio     = PREFERRED_HEIGHT / PREFERRED_WIDTH;
-        keepAspect      = true;
-        backgroundPaint = Color.TRANSPARENT;
-        borderPaint     = Color.TRANSPARENT;
-        borderWidth     = 0d;
-        open            = new BooleanPropertyBase(false) {
+        getStyleClass().setAll("fun-menu");
+        aspectRatio         = PREFERRED_HEIGHT / PREFERRED_WIDTH;
+        keepAspect          = true;
+        menuColor           = new SimpleStyleableObjectProperty<>(MENU_COLOR, this, "menuColor");
+        iconBackgroundColor = new SimpleStyleableObjectProperty<>(ICON_BACKGROUND_COLOR, this, "iconBackgroundColor");
+        iconColor           = new SimpleStyleableObjectProperty<>(ICON_COLOR, this, "iconColor");
+        buttonColor         = new SimpleStyleableObjectProperty<>(BUTTON_COLOR, this, "buttonColor");
+        crossColor          = new SimpleStyleableObjectProperty<>(CROSS_COLOR, this, "crossColor");
+        open                = new BooleanPropertyBase(false) {
             @Override protected void invalidated() {
                 if (!isOpen()) {
                     // close menu
@@ -134,8 +138,8 @@ public class FunMenu extends Region {
             @Override public Object getBean() { return FunMenu.this; }
             @Override public String getName() { return "open"; }
         };
-        timeline        = new Timeline();
-        closeHandler    = e -> setOpen(false);
+        timeline            = new Timeline();
+        closeHandler        = e -> setOpen(false);
         init();
         initGraphics();
         registerListeners();
@@ -171,19 +175,15 @@ public class FunMenu extends Region {
 
         item1 = new FunMenuItem();
         item1.setOpacity(0);
-        item1.getStyleClass().add("menu-item");
 
         item2 = new FunMenuItem();
         item2.setOpacity(0);
-        item2.getStyleClass().add("menu-item");
 
         item3 = new FunMenuItem();
         item3.setOpacity(0);
-        item3.getStyleClass().add("menu-item");
 
         item4 = new FunMenuItem();
         item4.setOpacity(0);
-        item4.getStyleClass().add("menu-item");
 
         button = new Region();
         button.setPickOnBounds(true);
@@ -193,21 +193,13 @@ public class FunMenu extends Region {
         cross.setMouseTransparent(true);
         cross.getStyleClass().add("cross");
 
-        pane = new Pane(menu, item1, item2, item3, item4, button, cross);
-        pane.getStyleClass().add("fun-menu");
-        pane.setBackground(new Background(new BackgroundFill(backgroundPaint, CornerRadii.EMPTY, Insets.EMPTY)));
-        pane.setBorder(new Border(new BorderStroke(borderPaint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(borderWidth))));
-
-        getChildren().setAll(pane);
+        getChildren().setAll(menu, item1, item2, item3, item4, button, cross);
     }
 
     private void registerListeners() {
         widthProperty().addListener(o -> resize());
         heightProperty().addListener(o -> resize());
         button.setOnMousePressed(e -> setOpen(!isOpen()));
-        timeline.setOnFinished(o -> {
-
-        });
     }
 
 
@@ -254,14 +246,64 @@ public class FunMenu extends Region {
     public void setOnItem3MousePressed(final EventHandler<MouseEvent> HANDLER) { item3.setOnMousePressed(HANDLER); }
     public void setOnItem4MousePressed(final EventHandler<MouseEvent> HANDLER) { item4.setOnMousePressed(HANDLER); }
 
+    public Color getMenuColor() { return menuColor.getValue(); }
+    public void setMenuColor(final Color COLOR) {
+        menuColor.setValue(COLOR);
+        menu.setStyle(null == getMenuColor() ? toFxBackgroundColor(MENU_COLOR.getInitialValue(this)) : toFxBackgroundColor(getMenuColor()));
+    }
+    public ObjectProperty<Color> menuColorProperty() { return (ObjectProperty<Color>) menuColor; }
+
+    public Color getIconBackgroundColor() { return iconBackgroundColor.getValue(); }
+    public void setIconBackgroundColor(final Color COLOR) {
+        iconBackgroundColor.setValue(COLOR);
+        String itemFxBackgroundColor = null == getIconBackgroundColor() ? toFxBackgroundColor(ICON_BACKGROUND_COLOR.getInitialValue(this)) : toFxBackgroundColor(getIconBackgroundColor());
+        item1.setStyle(itemFxBackgroundColor);
+        item2.setStyle(itemFxBackgroundColor);
+        item3.setStyle(itemFxBackgroundColor);
+        item4.setStyle(itemFxBackgroundColor);
+    }
+    public ObjectProperty<Color> iconBackgroundColorProperty() { return (ObjectProperty<Color>) iconBackgroundColor; }
+
+    public Color getIconColor() { return iconColor.getValue(); }
+    public void setIconColor(final Color COLOR) {
+        iconColor.setValue(COLOR);
+        item1.setIconColor(getIconColor());
+        item2.setIconColor(getIconColor());
+        item3.setIconColor(getIconColor());
+        item4.setIconColor(getIconColor());
+    }
+    public ObjectProperty<Color> iconColorProperty() { return (ObjectProperty<Color>) iconColor; }
+
+    public Color getButtonColor() { return buttonColor.getValue(); }
+    public void setButtonColor(final Color COLOR) {
+        buttonColor.setValue(COLOR);
+        button.setStyle(null == getButtonColor() ? toFxBackgroundColor(BUTTON_COLOR.getInitialValue(this)) : toFxBackgroundColor(getButtonColor()));
+    }
+    public ObjectProperty<Color> buttonColorProperty() { return (ObjectProperty<Color>) buttonColor; }
+
+    public Color getCrossColor() { return crossColor.getValue(); }
+    public void setCrossColor(final Color COLOR) {
+        crossColor.setValue(COLOR);
+        cross.setStyle(null == getCrossColor() ? toFxBackgroundColor(CROSS_COLOR.getInitialValue(this)) : toFxBackgroundColor(getCrossColor()));
+    }
+    public ObjectProperty<Color> crossColorProperty() { return (ObjectProperty<Color>) crossColor; }
+
     @Override public ObservableList<Node> getChildren() { return super.getChildren(); }
+
+    private String toFxBackgroundColor(final Color COLOR) {
+        return null == COLOR ? "-fx-background-color: transparent;" : new StringBuilder("-fx-background-color: ").append(COLOR.toString().replace("0x", "#")).append(";").toString();
+    }
+
+
+    // ******************** Style related *************************************
+    public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() { return FACTORY.getCssMetaData(); }
+    @Override public List<CssMetaData<? extends Styleable, ?>> getCssMetaData(){ return FACTORY.getCssMetaData(); }
 
 
     // ******************** Resizing ******************************************
     private void resize() {
         width  = getWidth() - getInsets().getLeft() - getInsets().getRight();
         height = getHeight() - getInsets().getTop() - getInsets().getBottom();
-        size   = width < height ? width : height;
 
         if (keepAspect) {
             if (aspectRatio * width > height) {
@@ -272,10 +314,6 @@ public class FunMenu extends Region {
         }
 
         if (width > 0 && height > 0) {
-            pane.setMaxSize(width, height);
-            pane.setPrefSize(width, height);
-            pane.relocate((getWidth() - width) * 0.5, (getHeight() - height) * 0.5);
-
             itemSize = 0.68571429 * height;
             item1.setPrefSize(itemSize, itemSize);
             item2.setPrefSize(itemSize, itemSize);
@@ -299,20 +337,11 @@ public class FunMenu extends Region {
             }
             menu.relocate((width - menu.getPrefWidth()) * 0.5, 0);
 
-
             button.setPrefSize(0.85714286 * height, 0.85714286 * height);
             button.relocate((width - button.getPrefWidth()) * 0.5, (height - button.getPrefHeight()) * 0.5);
 
             cross.setPrefSize(0.375 * button.getPrefWidth(), 0.375 * button.getPrefHeight());
             cross.relocate((width - cross.getPrefWidth()) * 0.5, (height - cross.getPrefHeight()) * 0.5);
-
-            redraw();
         }
-    }
-
-    private void redraw() {
-        pane.setBackground(new Background(new BackgroundFill(backgroundPaint, CornerRadii.EMPTY, Insets.EMPTY)));
-        pane.setBorder(new Border(new BorderStroke(borderPaint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(borderWidth / PREFERRED_WIDTH * size))));
-
     }
 }
