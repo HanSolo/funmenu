@@ -103,7 +103,7 @@ public class FunMenuItem extends StackPane {
     private void registerListeners() {
         widthProperty().addListener(o -> resize());
         heightProperty().addListener(o -> resize());
-        iconColorProperty().addListener(o -> icon.setStyle(null == getIconColor() ? toStyle(ICON_COLOR.getInitialValue(this)) : toStyle(getIconColor())));
+        iconColorProperty().addListener(o -> icon.setIconColor(getIconColor()));
     }
 
 
@@ -118,18 +118,6 @@ public class FunMenuItem extends StackPane {
     public ObjectProperty<Color> iconColorProperty() { return (ObjectProperty<Color>) iconColor; }
 
     @Override public ObservableList<Node> getChildren() { return super.getChildren(); }
-
-    private String toStyle(final Color COLOR) {
-        String currentStyle = getIcon().getStyle();
-        String newStyle;
-        if (currentStyle.contains("-fx-icon-color")) {
-            newStyle = currentStyle.replaceFirst("(-fx-icon-color:\\s#[a-fA-F0-9]{6,8};)", new StringBuilder("-fx-icon-color: ").append(COLOR.toString().replace("0x", "#")).append(";").toString());
-        } else {
-            newStyle = currentStyle + new StringBuilder("-fx-icon-color: ").append(COLOR.toString().replace("0x", "#")).append(";").toString();
-        }
-
-        return null == COLOR ? getIcon().getStyle() : newStyle;
-    }
 
 
     // ******************** Style related *************************************
